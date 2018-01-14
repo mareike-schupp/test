@@ -1,9 +1,27 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
-<%@ page import="java.sql.*" %> 
+<%@ page import="java.sql.*" %>
+<%@ page import="java.util.*" %>
+<%@ page import="com.example.Vocab"%>
 <%
   String levelParam = request.getParameter("level");
   Integer level = levelParam == null ? 0 : Integer.parseInt(levelParam);
+
+  Class.forName("com.mysql.jdbc.Driver");
+  java.sql.Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/lernplattform_benutzer", "root", "iforgot");
+  PreparedStatement pstmt = conn.prepareStatement("SELECT * FROM englisch WHERE level = ?;");
+  pstmt.setInt(1, level);
+  ResultSet rs = pstmt.executeQuery();
+  List<String> vocab = new ArrayList<String>();
+  while(rs.next()){
+    int id  = rs.getInt("id");
+    String german = rs.getString("deutsch");
+    String english = rs.getString("englisch");
+    vocab.add(english);
+  }
+  rs.close();
+  pstmt.close();
+  conn.close();
 %>
 <!DOCTYPE html>
 <html>
@@ -13,22 +31,10 @@
     <title>JSP Demo</title>
   </head>
   <body>
-    <% 
-      Class.forName("com.mysql.jdbc.Driver");
-      java.sql.Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/lernplattform_benutzer", "root", "iforgot");
-      Statement stmt = conn.createStatement();
-      ResultSet rs = stmt.executeQuery("SELECT * FROM englisch WHERE level = " + level + ";");
-      while(rs.next()){
-        int id  = rs.getInt("id");
-        String deutsch = rs.getString("deutsch");
-        String englisch = rs.getString("englisch");
-    
-        out.println(String.format("%d, %s - %s<br>", id, deutsch, englisch));
-      }
-      //STEP 6: Clean-up environment
-      rs.close();
-      stmt.close();
-      conn.close();
-    %>
+    <ul>
+    <% for (String english : vocab) { %>
+      <li><%= english %></li>
+    <% } %>
+    </ul>
   </body>
 </html>
